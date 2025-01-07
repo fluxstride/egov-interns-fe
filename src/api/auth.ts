@@ -1,17 +1,9 @@
 import { API } from ".";
 
 export const loginUser = async (username: string, password: string) => {
-  return await API.post("/login", { username, password });
+  return (await API.post("/auth/login", { username, password })).data;
 };
 
 export const registerUser = async (data: any) => {
-  return await API.post("/signup", data);
-};
-
-export const updateUserProfile = async (userId: string, data: any) => {
-  return await API.patch("/users/" + userId, data);
-};
-
-export const getUserProfile = async () => {
-  return await API.get("/user");
+  return (await API.post("/auth/signup", data)).data;
 };

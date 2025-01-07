@@ -1,6 +1,6 @@
 import React from "react";
 
-const page = () => {
+const UserPosts = () => {
   return (
     <div className="mt-8">
       <p className="text-center text-slate-800">No posts yet</p>
@@ -23,4 +23,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default UserPosts;

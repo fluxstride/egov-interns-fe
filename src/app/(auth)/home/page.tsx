@@ -6,17 +6,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import { BellIcon } from "lucide-react";
 
 const Page = () => {
   const { user } = useAuth();
   const [showFallbackImage, setShowFallbackImage] = useState(false);
 
   return (
-    <div className="max-w-lg mx-auto border min-h-screen">
-      <div className="p-4 border-b flex gap-4 items-center">
-        <div>
+    <div>
+      <div className="p-4 border-b flex gap-4 items-center justify-between">
+        <div className="flex gap-4 items-center">
           <Link
-            href="/profile"
+            href={`/${user.username}`}
             className="w-10 h-10 block rounded-full overflow-hidden border-slate-200 border-2"
           >
             {showFallbackImage ? (
@@ -38,11 +39,13 @@ const Page = () => {
               />
             )}
           </Link>
+
+          <h2>Hi, {user.firstName}</h2>
         </div>
 
-        <Input className="border" placeholder="What is happening?!" />
-
-        <Button>Post</Button>
+        <Button size="icon" variant="ghost">
+          <BellIcon className="w-5 h-5" />
+        </Button>
       </div>
 
       <div>

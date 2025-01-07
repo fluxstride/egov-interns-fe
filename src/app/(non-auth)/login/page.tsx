@@ -1,5 +1,4 @@
 "use client";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,6 +15,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import useLogin from "@/hooks/useLogin";
 
 const FormSchema = z.object({
   username: z.string().min(1, {
@@ -27,8 +27,7 @@ const FormSchema = z.object({
 });
 
 const Page = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isLoggingIn } = useLogin();
   const [showPassword, setshowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -39,15 +38,7 @@ const Page = () => {
     },
   });
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
-    try {
-      setIsLoading(true);
-      await login(data.username, data.password);
-    } catch (e) {
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const onSubmit = (data: z.infer<typeof FormSchema>) => login(data);
 
   return (
     <div className="p-4 mx-auto sm:w-[400px]">
@@ -122,10 +113,10 @@ const Page = () => {
             <Button
               type="submit"
               className="w-full relative"
-              disabled={isLoading}
+              disabled={isLoggingIn}
             >
-              {isLoading ? "Logging in" : "Log In"}
-              {isLoading && (
+              {isLoggingIn ? "Logging in" : "Log In"}
+              {isLoggingIn && (
                 <svg
                   aria-hidden="true"
                   className="w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-white absolute right-4"

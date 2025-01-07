@@ -2,7 +2,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -26,6 +25,10 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "./ui/calendar";
 import { useAuth } from "@/hooks/useAuth";
+import { updateUserProfile } from "@/api/profile";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "./ui/use-toast";
+import { useRouter } from "next/navigation";
 
 const FormSchema = z.object({
   firstName: z.string().min(1, { message: "Your first name is required" }),
@@ -48,51 +51,66 @@ const FormSchema = z.object({
   }),
 });
 
-export const EditProfile = () => {
+export const EditProfile = ({ profileData }: { profileData: any }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const { user, updateProfile } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { setUser } = useAuth();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      firstName: user.firstName,
-      lastName: user.lastName,
-      username: user.username,
-      email: user.email,
-      bio: user.bio ?? "Feel free to follow me, I don't bite 😁",
-      schoolName: user.schoolName,
-      schoolDepartment: user.schoolDepartment,
-      dob: new Date(user.dob),
+      firstName: profileData.firstName,
+      lastName: profileData.lastName,
+      username: profileData.username,
+      email: profileData.email,
+      bio: profileData.bio ?? "Feel free to follow me, I don't bite 😁",
+      schoolName: profileData.schoolName,
+      schoolDepartment: profileData.schoolDepartment,
+      dob: new Date(profileData.dob),
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    try {
-      setLoading(true);
-      console.log(data);
-      await updateProfile(data);
-    } finally {
+  const { mutate, isPending } = useMutation({
+    mutationFn: (data) => updateUserProfile(profileData.id, data),
+    onSettled: async (data, error: any) => {
+      if (error) {
+        return toast({
+          description: error.response.data.message,
+          variant: "destructive",
+        });
+      }
+
+      setUser(data.profile);
+      router.replace(`/${data.profile.username}`);
       setIsOpen(false);
-      setLoading(false);
+    },
+  });
+
+  const onSubmit = (data: z.infer<typeof FormSchema>) =>
+    mutate(data as unknown as any);
+
+  const onOpenChange = (open: boolean) => {
+    if (!open) {
+      form.reset();
     }
+    setIsOpen(open);
   };
 
   return (
-    <Dialog onOpenChange={setIsOpen} open={isOpen}>
+    <Dialog onOpenChange={onOpenChange} open={isOpen || isPending}>
       <DialogTrigger asChild>
         <Button size="sm" variant="outline">
           Edit profile
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] overflow-y-auto h-screen sm:h-[80vh]">
-        <DialogHeader>
+      <DialogContent className="overflow-y-scroll h-full sm:h-[90%] flex flex-col gap-4">
+        <div className="space-y-2">
           <DialogTitle>Edit profile</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="mt-2">
             Make changes to your profile here. Click save when you&apos;re done.
           </DialogDescription>
-        </DialogHeader>
+        </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -227,7 +245,7 @@ export const EditProfile = () => {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value ?? new Date(user.dob)}
+                        selected={field.value ?? new Date(profileData.dob)}
                         onSelect={(e) => {
                           field.onChange(e);
                           setIsCalendarOpen(false);
@@ -245,9 +263,9 @@ export const EditProfile = () => {
               )}
             />
 
-            <Button type="submit" className="mt-8" disabled={loading}>
-              {loading ? "Saving changes" : "Save changes"}
-              {loading && (
+            <Button type="submit" className="mt-8" disabled={isPending}>
+              {isPending ? "Saving changes" : "Save changes"}
+              {isPending && (
                 <svg
                   aria-hidden="true"
                   className="w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-white ml-4"

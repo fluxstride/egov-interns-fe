@@ -5,10 +5,8 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "./ui/button";
@@ -22,10 +20,10 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import { Loader2Icon, PlusCircle } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import { Textarea } from "./ui/textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addProject } from "../api/project";
+import { editProject } from "../api/project";
 import { toast } from "./ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -49,28 +47,36 @@ const FormSchema = z.object({
     .url({ message: "Project github repo link should be a valid link" }),
 });
 
-export const AddProject = () => {
-  const [isOpen, setIsOpen] = useState(false);
+export const EditProject = ({
+  show,
+  setShow,
+  project,
+}: {
+  show: boolean;
+  setShow: any;
+  project: any;
+}) => {
   const { user } = useAuth();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      technologies: "",
-      link: "",
-      githubRepo: "",
+    values: {
+      name: project?.name,
+      description: project?.description,
+      technologies: project?.technologies,
+      link: project?.link,
+      githubRepo: project?.githubRepo,
     },
   });
 
   const queryClient = useQueryClient();
 
-  const { mutate, isPending: isAdding } = useMutation({
-    mutationFn: (data) => addProject(data, user.id),
+  const { mutate, isPending } = useMutation({
+    mutationFn: (data) => editProject(data, user.id, project.id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
-      setIsOpen(false);
+      setShow(false);
+      toast({ description: "Project updated successfully", duration: 1000 });
       form.reset();
     },
     onError: (error: any) => {
@@ -85,19 +91,21 @@ export const AddProject = () => {
     mutate(data as unknown as any);
   };
 
+  const onOpenChange = (open: boolean) => {
+    if (!open) {
+      form.reset();
+    }
+
+    setShow(open);
+  };
+
   return (
-    <Dialog onOpenChange={setIsOpen} open={isOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="text-xs flex items-center gap-1">
-          <PlusCircle className="w-4 h-4" />
-          <span>Add Project</span>
-        </Button>
-      </DialogTrigger>
+    <Dialog onOpenChange={onOpenChange} open={show}>
       <DialogContent className="overflow-y-auto h-full sm:h-[90%] display flex flex-col gap-4">
         <div className="space-y-2">
-          <DialogTitle>Add a project</DialogTitle>
+          <DialogTitle>Edit project information</DialogTitle>
           <DialogDescription className="mt-2">
-            Add a project to your project list.
+            Edit project information
           </DialogDescription>
         </div>
         <Form {...form}>
@@ -178,10 +186,10 @@ export const AddProject = () => {
             />
             <Button
               className="mt-8 flex gap-1 items-center"
-              disabled={isAdding}
+              disabled={isPending}
             >
-              <p>{isAdding ? "Adding Project" : "Add Project"}</p>
-              {isAdding && <Loader2Icon className="w-4 h-4 animate-spin" />}
+              {isPending ? "Saving changes" : "Save changes"}
+              {isPending && <Loader2Icon className="w-4 h-4 animate-spin" />}
             </Button>
           </form>
         </Form>

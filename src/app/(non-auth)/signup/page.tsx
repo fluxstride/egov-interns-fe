@@ -25,6 +25,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Eye } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import useSignup from "@/hooks/useSignup";
 
 const FormSchema = z.object({
   firstName: z.string().min(1, { message: "Your first name is required" }),
@@ -50,8 +51,7 @@ const FormSchema = z.object({
 const Page = () => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [showPassword, setshowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const { signup } = useAuth();
+  const { signup, isSigningUp } = useSignup();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -66,11 +66,7 @@ const Page = () => {
     },
   });
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
-    setIsLoading(true);
-    await signup(data);
-    setIsLoading(false);
-  }
+  const onSubmit = (data: z.infer<typeof FormSchema>) => signup(data);
 
   return (
     <div className="p-4 mx-auto sm:w-[400px]">
@@ -255,10 +251,10 @@ const Page = () => {
             <Button
               type="submit"
               className="w-full relative"
-              disabled={isLoading}
+              disabled={isSigningUp}
             >
-              {isLoading ? "Signing in" : "Sign Up"}
-              {isLoading && (
+              {isSigningUp ? "Signing in" : "Sign Up"}
+              {isSigningUp && (
                 <svg
                   aria-hidden="true"
                   className="w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-white absolute right-4"

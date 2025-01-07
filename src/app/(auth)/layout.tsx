@@ -20,7 +20,13 @@ const Layout = ({ children }: { children: ReactNode }) => {
     return <Loader />;
   }
 
-  return children;
+  // return children;
+  return (
+    <div className="flex max-w-lg mx-auto border min-h-screen">
+      {/* <div className="bg-red-400">sidebar</div> */}
+      <div className="flex-grow"> {children}</div>
+    </div>
+  );
 };
 
 export default Layout;

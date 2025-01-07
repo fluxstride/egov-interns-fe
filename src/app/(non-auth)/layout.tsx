@@ -14,7 +14,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (user && !loading) {
-      return router.push("/profile");
+      return router.push(`/${user.username}`);
     }
   }, [user, loading, router]);
 
