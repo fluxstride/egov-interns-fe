@@ -16,31 +16,9 @@ const Page = () => {
     <div>
       <div className="p-4 border-b flex gap-4 items-center justify-between">
         <div className="flex gap-4 items-center">
-          <Link
-            href={`/${user.username}`}
-            className="w-10 h-10 block rounded-full overflow-hidden border-slate-200 border-2"
-          >
-            {showFallbackImage ? (
-              <div className="grid place-items-center w-full h-full">
-                <span>
-                  {`${user.firstName[0].toUpperCase()}${user.lastName[0].toUpperCase()}`}
-                </span>
-                <span className="sr-only">Profile Image</span>
-              </div>
-            ) : (
-              <Image
-                src={user.profileImage ?? "/"}
-                alt="Profile Image"
-                width={300}
-                height={300}
-                className="object-cover object-center w-full h-full"
-                onError={() => setShowFallbackImage(true)}
-                onLoad={() => setShowFallbackImage(false)}
-              />
-            )}
-          </Link>
-
-          <h2>Hi, {user.firstName}</h2>
+          <h2>
+            Hi, <span className="font-extrabold">{user.firstName}</span>
+          </h2>
         </div>
 
         <Button size="icon" variant="ghost">
